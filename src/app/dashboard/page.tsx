@@ -14,6 +14,7 @@ import {
   Legend,
 } from 'chart.js'
 import { Bar } from 'react-chartjs-2'
+import SubscriptionStatus from '../components/stripe/SubscriptionStatus'
 
 ChartJS.register(
   CategoryScale,
@@ -184,6 +185,12 @@ export default function Dashboard() {
           const data = JSON.parse(text)
           console.log('Dados carregados:', data)
 
+          // Verificar se os dados estão vazios ou incompletos
+          if (data.length === 0) {
+            setError('Nenhum resultado encontrado. Por favor, processe alguns exames primeiro.')
+            return
+          }
+
           // Ordenar os exames por data de processamento (mais recente primeiro)
           const sortedData = data.sort((a: ExamResult, b: ExamResult) => {
             return new Date(b.processedAt).getTime() - new Date(a.processedAt).getTime()
@@ -353,6 +360,11 @@ export default function Dashboard() {
             className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
           />
         </div>
+      </div>
+
+      {/* Status da assinatura */}
+      <div className="mb-6">
+        <SubscriptionStatus />
       </div>
 
       <div className="mb-6 p-4 bg-gray-50 rounded-lg">
@@ -587,4 +599,4 @@ export default function Dashboard() {
       </div>
     </div>
   )
-} 
+}

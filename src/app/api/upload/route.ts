@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import pdfParse from 'pdf-parse'
 import fs from 'fs'
 import path from 'path'
+import { encryptData } from '@/utils/crypto'
+import { rateLimit } from '@/utils/rate-limit'
 
 interface ExamResult {
   fileName: string
@@ -67,8 +69,22 @@ declare global {
   var examResults: ExamResult[]
 }
 
+// Constantes para limites de segurança
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_FILES = 5; // Máximo de 5 arquivos por upload
+
 export async function POST(request: NextRequest) {
   console.log('Iniciando processamento da requisição POST...')
+
+  // Aplicar rate limiting - 5 uploads por minuto
+  const rateLimitResponse = rateLimit(request, 5, 60 * 1000);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
+  // Verificar o token CSRF (apenas para debug em desenvolvimento)
+  const csrfToken = request.headers.get('X-CSRF-Token');
+  console.log('[DEBUG] Token CSRF recebido no upload:', csrfToken ? 'Presente' : 'Ausente');
 
   try {
     const contentType = request.headers.get('content-type')
@@ -108,11 +124,50 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Verificar limite de arquivos
+    if (files.length > MAX_FILES) {
+      return new NextResponse(
+        JSON.stringify({
+          success: false,
+          error: 'Limite de arquivos excedido',
+          details: `O número máximo de arquivos permitido é ${MAX_FILES}`
+        }),
+        {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      )
+    }
+
     const results: ExamResult[] = []
 
     for (const file of files) {
       if (!(file instanceof File)) {
         console.error('Item não é um arquivo:', typeof file)
+        continue
+      }
+
+      // Validar tamanho do arquivo
+      if (file.size > MAX_FILE_SIZE) {
+        console.error(`Arquivo muito grande: ${file.name} (${file.size} bytes)`)
+        results.push({
+          fileName: file.name,
+          error: `Arquivo excede o tamanho máximo permitido de ${MAX_FILE_SIZE / (1024 * 1024)}MB`,
+          textoCompleto: '',
+          processedAt: new Date().toISOString()
+        })
+        continue
+      }
+
+      // Validar tipo de arquivo
+      if (!file.name.toLowerCase().endsWith('.pdf') && file.type !== 'application/pdf') {
+        console.error(`Tipo de arquivo inválido: ${file.name} (${file.type})`)
+        results.push({
+          fileName: file.name,
+          error: 'Apenas arquivos PDF são permitidos',
+          textoCompleto: '',
+          processedAt: new Date().toISOString()
+        })
         continue
       }
 
@@ -174,18 +229,50 @@ export async function POST(request: NextRequest) {
     console.log(`Processamento concluído. ${results.length} resultado(s)`)
     global.examResults = results
 
-    // Salvar resultados em um arquivo JSON na pasta public
+    // Salvar resultados em um arquivo JSON em uma pasta privada
     try {
-      const publicDir = path.join(process.cwd(), 'public')
+      // Usar pasta data dentro do projeto, mas fora da pasta public
+      const dataDir = path.join(process.cwd(), 'data')
 
-      // Criar pasta public se não existir
+      // Criar pasta data se não existir
+      if (!fs.existsSync(dataDir)) {
+        fs.mkdirSync(dataDir, { recursive: true })
+      }
+
+      // Criptografar e remover informações sensíveis antes de salvar
+      const sanitizedResults = results.map(result => {
+        // Criar uma cópia do resultado sem o texto completo
+        const { textoCompleto, ...sanitizedResult } = result;
+
+        // Criptografar o texto completo se existir
+        const encryptedText = textoCompleto ? encryptData(textoCompleto) : '';
+
+        // Manter apenas os primeiros 100 caracteres do texto para referência
+        return {
+          ...sanitizedResult,
+          textoCompleto: encryptedText, // Armazenar versão criptografada
+          textoResumido: textoCompleto ? textoCompleto.substring(0, 100) + '...' : ''
+        };
+      });
+
+      const resultsPath = path.join(dataDir, 'exam-results.json')
+      fs.writeFileSync(resultsPath, JSON.stringify(sanitizedResults, null, 2))
+      console.log(`Resultados salvos em: ${resultsPath}`)
+
+      // Criar uma cópia na pasta public apenas com dados não sensíveis para acesso do cliente
+      const publicDir = path.join(process.cwd(), 'public')
       if (!fs.existsSync(publicDir)) {
         fs.mkdirSync(publicDir, { recursive: true })
       }
 
-      const resultsPath = path.join(publicDir, 'exam-results.json')
-      fs.writeFileSync(resultsPath, JSON.stringify(results, null, 2))
-      console.log(`Resultados salvos em: ${resultsPath}`)
+      // Versão pública contém apenas os valores numéricos e metadados, sem textos completos
+      const publicResults = sanitizedResults.map(result => {
+        const { textoResumido, rawText, ...publicData } = result;
+        return publicData;
+      });
+
+      const publicResultsPath = path.join(publicDir, 'exam-results.json')
+      fs.writeFileSync(publicResultsPath, JSON.stringify(publicResults, null, 2))
     } catch (fsError) {
       console.error('Erro ao salvar arquivo de resultados:', fsError)
       // Não falhar por causa do arquivo, apenas logar o erro
@@ -211,16 +298,12 @@ export async function POST(request: NextRequest) {
       console.error('Stack trace:', error.stack)
     }
 
+    // Não expor detalhes de erro ou stack traces na resposta
     return new NextResponse(
       JSON.stringify({
         success: false,
         error: 'Erro ao processar arquivos',
-        details: error instanceof Error ?
-          `${error.name}: ${error.message}` :
-          'Erro interno do servidor',
-        stack: process.env.NODE_ENV === 'development' ?
-          error instanceof Error ? error.stack : undefined :
-          undefined
+        details: 'Ocorreu um erro interno ao processar sua solicitação'
       }),
       {
         status: 500,
@@ -576,4 +659,4 @@ function extractExamData(text: string): Omit<ExamResult, 'fileName' | 'processed
 
   console.log('Extração de dados concluída')
   return output
-} 
+}

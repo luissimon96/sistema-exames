@@ -81,6 +81,7 @@ interface ExamResult {
   rgf?: number | null
   colesterolNaoHdl?: number | null
   textoCompleto?: string
+  textoResumido?: string
   rawText?: string
   error?: string
   processedAt: string
@@ -217,6 +218,28 @@ export default function RawData() {
           throw new Error('Falha ao carregar resultados')
         }
         const data = await response.json()
+
+        // Verificar se precisamos buscar o texto completo dos exames
+        const needsFullText = data.some((exam: ExamResult) => !exam.textoCompleto && !exam.textoResumido);
+
+        // Se precisarmos do texto completo, buscar da API
+        if (needsFullText) {
+          try {
+            const fullTextResponse = await fetch('/api/exams/full-text')
+            if (fullTextResponse.ok) {
+              const fullTextData = await fullTextResponse.json()
+              // Mesclar os dados completos com os dados resumidos
+              data.forEach((exam: ExamResult, index: number) => {
+                if (fullTextData[index] && fullTextData[index].textoCompleto) {
+                  exam.textoCompleto = fullTextData[index].textoCompleto;
+                }
+              });
+            }
+          } catch (fullTextError) {
+            console.warn('Não foi possível carregar o texto completo dos exames:', fullTextError);
+          }
+        }
+
         // Adicionando arrays vazios para anotações e medicações se não existirem
         const processedData = data.map((exam: ExamResult) => ({
           ...exam,
@@ -971,18 +994,23 @@ export default function RawData() {
                 })}
               </div>
 
-              {selectedExam.textoCompleto && (
+              {(selectedExam.textoCompleto || selectedExam.textoResumido) && (
                 <div className="mt-6 p-6 border rounded-lg shadow-sm bg-white">
                   <h3 className="text-lg font-medium mb-4 text-gray-900 border-b pb-2">
-                    Texto Completo do Exame
+                    {selectedExam.textoCompleto ? 'Texto Completo do Exame' : 'Resumo do Texto do Exame'}
                     <span className="ml-2 text-sm text-gray-500">
                       ({selectedExam.fileName})
                     </span>
                   </h3>
                   <div className="whitespace-pre-wrap bg-gray-100 p-4 max-h-[500px] overflow-y-auto font-mono text-base leading-relaxed border border-gray-300 rounded text-gray-900">
-                    {selectedExam.textoCompleto}
+                    {selectedExam.textoCompleto || selectedExam.textoResumido}
                   </div>
 
+                  {!selectedExam.textoCompleto && selectedExam.textoResumido && (
+                    <div className="mt-2 text-sm text-gray-500">
+                      <p>Nota: Este é apenas um resumo do texto original. O texto completo está disponível apenas para usuários autorizados.</p>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -998,4 +1026,4 @@ export default function RawData() {
       )}
     </div>
   );
-} 
+}

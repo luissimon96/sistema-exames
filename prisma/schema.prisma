@@ -1,0 +1,122 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Modelo de usuário
+model User {
+  id                String    @id @default(cuid())
+  name              String?
+  email             String    @unique
+  emailVerified     DateTime?
+  password          String?
+  image             String?
+  role              String    @default("user") // "user" ou "admin"
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  twoFactorEnabled  Boolean   @default(false)
+  twoFactorSecret   String?
+  resetToken        String?
+  resetTokenExpiry  DateTime?
+
+  // Campos adicionais para perfil
+  bio               String?
+  location          String?
+  website           String?
+  phoneNumber       String?
+  jobTitle          String?
+  company           String?
+  isActive          Boolean   @default(true)
+  lastLogin         DateTime?
+
+  // Redes sociais
+  facebookUrl       String?
+  twitterUrl        String?
+  linkedinUrl       String?
+  instagramUrl      String?
+  githubUrl         String?
+
+  // Personalização
+  theme             String?   @default("light") // "light", "dark", "system", "custom"
+  accentColor       String?   @default("#3b82f6") // Cor de destaque personalizada
+
+  // Estatísticas de uso
+  loginCount        Int       @default(0)
+  lastActivity      DateTime?
+  totalUploads      Int       @default(0)
+  totalExams        Int       @default(0)
+
+  // Informações de assinatura
+  stripeCustomerId  String?
+  subscriptionId    String?
+  subscriptionStatus String?   @default("inactive") // "active", "trialing", "past_due", "canceled", "unpaid", "inactive"
+  subscriptionPlan  String?   @default("free") // "free", "pro", "full"
+  subscriptionPeriodStart DateTime?
+  subscriptionPeriodEnd DateTime?
+  subscriptionCanceledAt DateTime?
+
+  accounts          Account[]
+  sessions          Session[]
+  activities        Activity[]
+}
+
+// Modelo para logs de atividade
+model Activity {
+  id          String   @id @default(cuid())
+  userId      String
+  action      String   // "login", "upload", "update_profile", etc.
+  details     String?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Modelo de conta (para provedores OAuth)
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+// Modelo de sessão
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Modelo para verificar tokens
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
