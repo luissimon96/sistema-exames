@@ -1,0 +1,44 @@
+[
+  {
+    "fileName": "792467.pdf",
+    "hemoglobina": 14.8,
+    "glicose": null,
+    "colesterolTotal": 239,
+    "triglicerides": 226,
+    "hdl": 41,
+    "ldl": 159.7,
+    "vldl": null,
+    "plaquetas": 221,
+    "leucocitos": 6.29,
+    "rawText": "\n\nSr(a).: LUIS EDUARDO SIMON                      Idade: 28 anos - 20/04/1996\nDr(a).: GUILHERME MARX                           CPF : 03362872085\nColeta em.: UNIMED REGIAO DA PRODUCAO                      Data..: 19/12/2024     Boletim..: 792467\n                   \nPara visualizar exames,acesse: https://laudosweb.mcinfor-saude.net.br login: p78471, senha:20041996\n______________________________________________________________________________\n   HEMOGRAMA COMPLETO \n   \n    Hemácias...:    4,95 milhoes/ul                          VN:  4,50 a  5,50 milhões/ul\n    Hemoglobina:   14,80 g/dl                                VN: 13,00 a 17,00 g/dl\n    Hematócrito:   44,10 %                                   VN: 40,00 a 50,00 %\n    V.C.M......:   89,10 fl                                  VN: 83,00 a 101,00 fl\n    H.C.M......:   29,90 pg                                  VN: 27,00 a 32,00 pg\n    C.H.C.M....:   33,60 %                                   VN: 31,50 a 34,50 %\n    R.D.W-\nCV...:   12,70 % ",
+    "processedAt": "2025-04-08T04:04:42.526Z"
+  },
+  {
+    "fileName": "793068.pdf",
+    "hemoglobina": null,
+    "glicose": null,
+    "colesterolTotal": null,
+    "triglicerides": null,
+    "hdl": null,
+    "ldl": null,
+    "vldl": null,
+    "plaquetas": null,
+    "leucocitos": null,
+    "rawText": "\n\nSr(a).: LUIS EDUARDO SIMON                      Idade: 28 anos - 20/04/1996\nDr(a).: ANDRESSA MARIANE BORBA LIMA              CPF : 03362872085\nColeta em.: UNIMED REGIAO DA PRODUCAO                      Data..: 23/12/2024     Boletim..: 793068\n                   \nPara visualizar exames,acesse: https://laudosweb.mcinfor-saude.net.br login: p78471, senha:20041996\n______________________________________________________________________________\nTGO                             39,0 U/L                   \n                                                          \nMaterial....: SORO                                        Valores de Referência: Masculino     Feminino     \nMetodologia.: QUIMICA SECA                                Adulto...............: 17 a 59 U/L   14 a 36 U/L\n                                         De 0 dia a 05 dias...: 35 a 140 U/L  35 a 140 U/L\n                                         De 06 dias a 03 anos.: 20 a 30 U/L   20 a 60 U/L\n                                        ",
+    "processedAt": "2025-04-08T04:04:42.715Z"
+  },
+  {
+    "fileName": "806499.pdf",
+    "hemoglobina": 15.1,
+    "glicose": 82,
+    "colesterolTotal": 217,
+    "triglicerides": 120,
+    "hdl": 40,
+    "ldl": 153,
+    "vldl": null,
+    "plaquetas": 220,
+    "leucocitos": 6.13,
+    "rawText": "\n\nSr(a).: LUIS EDUARDO SIMON                      Idade: 28 anos - 20/04/1996\nDr(a).: MONICA TERESA MULLER                     CPF : 03362872085\nColeta em.: UNIMED REGIAO DA PRODUCAO                      Data..: 13/03/2025     Boletim..: 806499\n                   \nPara visualizar exames,acesse: https://laudosweb.mcinfor-saude.net.br login: p78471, senha:20041996\n______________________________________________________________________________\nVHS                            18                 mm         \nMaterial.:  SANGUE TOTAL C/ CITRATO DE SÓDIO 3,8%                                      \nMétodo...: WESTERGREEN                                         Valores de Referência:\n                                             Homens: até 15 mm: Até 50 anos\n                                                     até 20 mm: A partir de 50 anos\n                                             Mulheres: até 20 mm: Até 50 anos\n                                                       até 30 mm: A partir de 50 a",
+    "processedAt": "2025-04-08T04:04:42.942Z"
+  }
+]
