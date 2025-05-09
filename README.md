@@ -2,23 +2,64 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
+### Configuração do Banco de Dados
+
+Este projeto usa o Supabase como banco de dados PostgreSQL. Siga os passos abaixo para configurar:
+
+1. Crie uma conta no [Supabase](https://supabase.com/) e crie um novo projeto
+2. Obtenha as credenciais de conexão (URL e chave anônima) no painel do Supabase
+3. Configure as variáveis de ambiente no arquivo `.env.local`:
+
+```
+DATABASE_URL="postgresql://postgres:[YOUR-PASSWORD]@db.[YOUR-PROJECT-REF].supabase.co:5432/postgres"
+NEXT_PUBLIC_SUPABASE_URL="https://[YOUR-PROJECT-REF].supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="[YOUR-ANON-KEY]"
+```
+
+4. Execute a migração do Prisma para criar as tabelas no Supabase:
+
+```bash
+npx prisma migrate deploy
+```
+
+5. Gere as chaves de segurança necessárias:
+
+```bash
+# Gerar chave para NextAuth
+node scripts/generate-secret.js
+
+# Gerar chave para tokens CSRF
+node scripts/generate-csrf-key.js
+
+# Gerar chave para criptografia de dados sensíveis
+node scripts/generate-encryption-key.js
+```
+
+6. Configure os usuários iniciais:
+
+```bash
+npx ts-node --compiler-options '{"module":"CommonJS"}' scripts/setup-supabase.ts
+```
+
+### Executando o Servidor de Desenvolvimento
+
+Após configurar o banco de dados, execute o servidor de desenvolvimento:
 
 ```bash
 npm run dev
-# or
+# ou
 yarn dev
-# or
+# ou
 pnpm dev
-# or
+# ou
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abra [http://localhost:3000](http://localhost:3000) no seu navegador para ver o resultado.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Você pode começar a editar a página modificando `app/page.tsx`. A página atualiza automaticamente conforme você edita o arquivo.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Este projeto usa [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) para otimizar e carregar automaticamente [Geist](https://vercel.com/font), uma nova família de fontes da Vercel.
 
 ## Learn More
 
@@ -29,11 +70,35 @@ To learn more about Next.js, take a look at the following resources:
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Deploy on Vercel
+## Deploy na Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Este projeto está configurado para ser facilmente implantado na Vercel. Siga os passos abaixo:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Crie uma conta na [Vercel](https://vercel.com/) se ainda não tiver uma
+2. Conecte seu repositório GitHub/GitLab/Bitbucket à Vercel
+3. Configure as variáveis de ambiente na Vercel:
+   - `DATABASE_URL`: URL de conexão do Supabase
+   - `NEXTAUTH_URL`: URL da sua aplicação implantada
+   - `NEXTAUTH_SECRET`: Chave secreta para o NextAuth
+   - `NEXT_PUBLIC_SUPABASE_URL`: URL do seu projeto Supabase
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Chave anônima do Supabase
+   - `STRIPE_PUBLIC_KEY`: Chave pública do Stripe
+   - `STRIPE_SECRET_KEY`: Chave secreta do Stripe
+   - `STRIPE_WEBHOOK_SECRET`: Secret do webhook do Stripe
+   - `STRIPE_PRO_PRICE_ID`: ID do preço do plano Pro no Stripe
+   - `STRIPE_FULL_PRICE_ID`: ID do preço do plano Full no Stripe
+
+4. Implante o projeto na Vercel
+5. Execute a migração do banco de dados usando o CLI da Vercel:
+
+```bash
+vercel env pull .env.local
+npx prisma migrate deploy
+```
+
+A maneira mais fácil de implantar seu aplicativo Next.js é usar a [Plataforma Vercel](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) dos criadores do Next.js.
+
+Consulte nossa [documentação de implantação do Next.js](https://nextjs.org/docs/app/building-your-application/deploying) para mais detalhes.
 
 ## Backlog do Projeto
 

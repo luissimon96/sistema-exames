@@ -1,0 +1,44 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "env": {
+    "NEXTAUTH_URL": {
+      "description": "URL da sua aplicação implantada (ex: https://seu-app.vercel.app)"
+    },
+    "NEXTAUTH_SECRET": {
+      "description": "Chave secreta para o NextAuth (gere uma chave aleatória)"
+    },
+    "DATABASE_URL": {
+      "description": "URL de conexão do Supabase"
+    },
+    "NEXT_PUBLIC_SUPABASE_URL": {
+      "description": "URL do seu projeto Supabase"
+    },
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": {
+      "description": "Chave anônima do Supabase"
+    },
+    "STRIPE_PUBLIC_KEY": {
+      "description": "Chave pública do Stripe"
+    },
+    "STRIPE_SECRET_KEY": {
+      "description": "Chave secreta do Stripe"
+    },
+    "STRIPE_WEBHOOK_SECRET": {
+      "description": "Secret do webhook do Stripe"
+    },
+    "STRIPE_PRO_PRICE_ID": {
+      "description": "ID do preço do plano Pro no Stripe"
+    },
+    "STRIPE_FULL_PRICE_ID": {
+      "description": "ID do preço do plano Full no Stripe"
+    }
+  },
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install"
+}

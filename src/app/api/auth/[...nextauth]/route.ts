@@ -1,4 +1,4 @@
-import NextAuth from "next-auth";
+import NextAuth, { type NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import { PrismaAdapter } from "@auth/prisma-adapter";
@@ -11,7 +11,7 @@ const emailConfig = {
   from: process.env.EMAIL_FROM,
 };
 
-const handler = NextAuth({
+export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [
     CredentialsProvider({
@@ -98,18 +98,20 @@ const handler = NextAuth({
   },
   callbacks: {
     async jwt({ token, user }) {
-      // Adicionar o papel (role) do usuário ao token
+      // Adicionar o papel (role) e ID do usuário ao token
       if (user) {
-        console.log('JWT callback - user:', user.email, 'role:', user.role);
+        console.log('JWT callback - user:', user.email, 'role:', user.role, 'id:', user.id);
         token.role = user.role;
+        token.id = user.id; // Adiciona o ID do usuário ao token
       }
       return token;
     },
     async session({ session, token }) {
-      // Adicionar o papel (role) do usuário à sessão
+      // Adicionar o papel (role) e ID do usuário à sessão a partir do token
       if (session.user) {
-        console.log('Session callback - user:', session.user.email, 'token role:', token.role);
-        session.user.role = token.role;
+        console.log('Session callback - user:', session.user.email, 'token role:', token.role, 'token id:', token.id);
+        session.user.role = token.role as string;
+        session.user.id = token.id as string; // Adiciona o ID do usuário à sessão
       }
       return session;
     },
@@ -119,6 +121,8 @@ const handler = NextAuth({
     error: "/login",
   },
   secret: process.env.NEXTAUTH_SECRET || "um-segredo-muito-seguro-que-deve-ser-substituido",
-});
+};
+
+const handler = NextAuth(authOptions);
 
 export { handler as GET, handler as POST };
