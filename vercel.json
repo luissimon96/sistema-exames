@@ -6,17 +6,6 @@
       "use": "@vercel/next"
     }
   ],
-  "environments": {
-    "production": {
-      "NODE_ENV": "production"
-    },
-    "preview": {
-      "NODE_ENV": "development"
-    },
-    "development": {
-      "NODE_ENV": "development"
-    }
-  },
   "buildCommand": "npm run build",
   "devCommand": "npm run dev",
   "installCommand": "npm install"
