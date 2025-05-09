@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import * as XLSX from 'xlsx'
 import { CSVLink } from 'react-csv'
+import ExcelJS from 'exceljs';
 
 interface DataExportProps {
   onExport: (format: string, dataType: string, options: any) => Promise<any>
@@ -66,11 +67,25 @@ export default function DataExport({ onExport }: DataExportProps) {
       const data = await onExport(exportFormat, dataType, options)
       
       if (exportFormat === 'excel') {
-        // Exportar para Excel
-        const worksheet = XLSX.utils.json_to_sheet(data)
-        const workbook = XLSX.utils.book_new()
-        XLSX.utils.book_append_sheet(workbook, worksheet, dataType)
-        XLSX.writeFile(workbook, `${dataType}-export-${new Date().toISOString().split('T')[0]}.xlsx`)
+        // Export to Excel using exceljs
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet(dataType);
+
+        // Add headers dynamically based on data keys
+        const headers = Object.keys(data[0] || {}).map((key) => ({ header: key, key }));
+        worksheet.columns = headers;
+
+        // Add data rows
+        worksheet.addRows(data);
+
+        // Generate the file and trigger download
+        const buffer = await workbook.xlsx.writeBuffer();
+        const fileName = `${dataType}-export-${new Date().toISOString().split('T')[0]}.xlsx`;
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = fileName;
+        link.click();
       }
       
       setSuccess(`Dados exportados com sucesso no formato ${exportFormat.toUpperCase()}`)

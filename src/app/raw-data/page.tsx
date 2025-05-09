@@ -15,6 +15,7 @@ import {
 import { Line } from 'react-chartjs-2'
 import * as XLSX from 'xlsx'
 import { v4 as uuidv4 } from 'uuid'
+import ExcelJS from 'exceljs'
 
 // Registro dos componentes do Chart.js
 ChartJS.register(
@@ -360,10 +361,23 @@ export default function RawData() {
   };
 
   // Função para exportar dados para Excel
-  const exportToExcel = () => {
+  const exportToExcel = async () => {
     if (!selectedExam) return;
 
-    // Criando um objeto que será convertido em Excel
+    // Create a new workbook and worksheet
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Resultados');
+
+    // Add headers to the worksheet
+    worksheet.columns = [
+      { header: 'Exame', key: 'exame', width: 20 },
+      { header: 'Valor', key: 'valor', width: 15 },
+      { header: 'Unidade', key: 'unidade', width: 15 },
+      { header: 'Referência', key: 'referencia', width: 20 },
+      { header: 'Status', key: 'status', width: 20 },
+    ];
+
+    // Add data rows to the worksheet
     const worksheetData = Object.entries(selectedExam)
       .filter(([key]) =>
         key !== 'fileName' &&
@@ -383,22 +397,24 @@ export default function RawData() {
         const unit = refValue?.unit || '';
 
         return {
-          'Exame': key.charAt(0).toUpperCase() + key.slice(1),
-          'Valor': value,
-          'Unidade': unit,
-          'Referência': refValue ? `${refValue.min} - ${refValue.max}` : 'N/A',
-          'Status': status
+          exame: key.charAt(0).toUpperCase() + key.slice(1),
+          valor: value,
+          unidade: unit,
+          referencia: refValue ? `${refValue.min} - ${refValue.max}` : 'N/A',
+          status: status,
         };
       });
 
-    // Criando a planilha Excel
-    const ws = XLSX.utils.json_to_sheet(worksheetData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Resultados");
+    worksheet.addRows(worksheetData);
 
-    // Gerando o arquivo e fazendo download
-    const fileName = `${selectedExam.fileName.replace(/\.[^/.]+$/, "")}_resultados.xlsx`;
-    XLSX.writeFile(wb, fileName);
+    // Generate the file and trigger download
+    const buffer = await workbook.xlsx.writeBuffer();
+    const fileName = `${selectedExam.fileName.replace(/\.[^/.]+$/, '')}_resultados.xlsx`;
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = fileName;
+    link.click();
   };
 
   // Função para calcular valores suavizados (LOWESS simplificado)
