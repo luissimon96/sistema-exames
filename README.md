@@ -2,6 +2,7 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+
 ### Configuração do Banco de Dados
 
 Este projeto usa o Supabase como banco de dados PostgreSQL. Siga os passos abaixo para configurar:
