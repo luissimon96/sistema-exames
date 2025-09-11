@@ -1,26 +1,31 @@
 import { PrismaClient } from '@prisma/client';
-import CryptoJS from 'crypto-js';
-import { v4 as uuidv4 } from 'uuid';
+import bcrypt from 'bcrypt';
+import { randomBytes } from 'crypto';
+import { authenticator } from 'otplib';
 
 const prisma = new PrismaClient();
 
 /**
- * Gera um hash seguro para a senha
+ * Gera um hash seguro para a senha usando bcrypt
+ * @param password - A senha em texto plano
+ * @returns Hash bcrypt da senha
  */
 export async function hashPassword(password: string): Promise<string> {
-  // Em produção, use bcrypt ou Argon2
-  return CryptoJS.SHA256(password).toString(CryptoJS.enc.Hex);
+  const saltRounds = 12; // Recomendado para segurança alta
+  return await bcrypt.hash(password, saltRounds);
 }
 
 /**
- * Verifica se a senha está correta
+ * Verifica se a senha está correta usando bcrypt
+ * @param password - A senha em texto plano
+ * @param hashedPassword - O hash bcrypt armazenado
+ * @returns True se a senha estiver correta
  */
 export async function verifyPassword(
   password: string,
   hashedPassword: string
 ): Promise<boolean> {
-  const passwordHash = await hashPassword(password);
-  return passwordHash === hashedPassword;
+  return await bcrypt.compare(password, hashedPassword);
 }
 
 /**
@@ -72,13 +77,14 @@ export async function getUserById(id: string) {
 }
 
 /**
- * Gera um token para redefinição de senha
+ * Gera um token criptograficamente seguro para redefinição de senha
  */
 export async function generatePasswordResetToken(email: string) {
   const user = await getUserByEmail(email);
   if (!user) return null;
 
-  const token = uuidv4();
+  // Usar randomBytes para token criptograficamente seguro
+  const token = randomBytes(32).toString('hex');
   const expires = new Date();
   expires.setHours(expires.getHours() + 2); // Token válido por 2 horas
 
@@ -131,6 +137,13 @@ export async function resetPassword(token: string, newPassword: string) {
 }
 
 /**
+ * Gera um segredo para autenticação de dois fatores usando otplib
+ */
+export function generateTwoFactorSecret(): string {
+  return authenticator.generateSecret();
+}
+
+/**
  * Ativa a autenticação de dois fatores para um usuário
  */
 export async function enableTwoFactorAuth(userId: string, secret: string) {
@@ -157,23 +170,50 @@ export async function disableTwoFactorAuth(userId: string) {
 }
 
 /**
- * Verifica o código de autenticação de dois fatores
+ * Verifica o código de autenticação de dois fatores usando otplib (RFC 6238)
+ * @param secret - O segredo base32 compartilhado
+ * @param token - O código de 6 dígitos fornecido pelo usuário
+ * @returns True se o token for válido
  */
 export function verifyTwoFactorCode(secret: string, token: string): boolean {
-  // Em uma implementação real, use uma biblioteca como 'otplib'
-  // Este é apenas um exemplo simplificado
-  const expectedToken = CryptoJS.HmacSHA1(
-    Math.floor(Date.now() / 30000).toString(),
-    secret
-  ).toString().substring(0, 6);
-
-  return token === expectedToken;
+  try {
+    // Usar window de 1 para permitir tolerância de tempo (±30 segundos)
+    // Configurar opções do authenticator
+    authenticator.options = { window: 1 };
+    return authenticator.verify({ 
+      token: token.replace(/\s/g, ''), // Remove espaços
+      secret: secret
+    });
+  } catch (error) {
+    console.error('Error verifying 2FA code:', error);
+    return false;
+  }
 }
 
 /**
- * Gera um código de verificação de 6 dígitos
+ * Gera uma URL para QR Code do authenticator app
+ * @param user - Dados do usuário (nome e email)
+ * @param secret - O segredo compartilhado
+ * @param serviceName - Nome do serviço (padrão: Sistema de Exames)
+ * @returns URL otpauth:// para gerar QR code
+ */
+export function generateQRCodeURL(
+  user: { name: string; email: string },
+  secret: string,
+  serviceName: string = 'Sistema de Exames'
+): string {
+  return authenticator.keyuri(
+    user.email,
+    serviceName,
+    secret
+  );
+}
+
+/**
+ * Gera um código de verificação de 6 dígitos criptograficamente seguro
  */
 export function generateVerificationCode(): string {
-  // Gerar um código de 6 dígitos
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  // Usar randomBytes para geração segura
+  const randomValue = randomBytes(4).readUInt32BE(0);
+  return (100000 + (randomValue % 900000)).toString();
 }

@@ -32,10 +32,8 @@ export async function middleware(request: NextRequest) {
   )
 
   // Verificar token CSRF para requisições de modificação (POST, PUT, DELETE, PATCH)
-  // Em ambiente de produção, esta verificação seria obrigatória
-  const isProduction = process.env.NODE_ENV === 'production';
-
-  if (isProduction && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(method) && !pathname.startsWith('/api/auth')) {
+  // Verificação obrigatória em todos os ambientes para segurança
+  if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(method) && !pathname.startsWith('/api/auth')) {
     // Obter o token CSRF do cabeçalho ou do corpo da requisição
     const csrfToken = request.headers.get('X-CSRF-Token') ||
                       request.cookies.get('csrf_token')?.value
@@ -58,11 +56,11 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Em desenvolvimento, registrar informações sobre o token CSRF para debug
-  if (!isProduction && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)) {
+  // Registrar tentativas de CSRF sem dados sensíveis
+  if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(method) && process.env.NODE_ENV === 'development') {
     const csrfToken = request.headers.get('X-CSRF-Token') ||
                       request.cookies.get('csrf_token')?.value
-    console.log(`[DEBUG] CSRF Token para ${method} ${pathname}:`, csrfToken ? 'Presente' : 'Ausente');
+    console.log(`[DEBUG] CSRF validation for ${method} ${pathname}:`, csrfToken ? 'Token present' : 'Token missing');
   }
 
   // Se for uma rota pública, continuar normalmente
@@ -76,10 +74,12 @@ export async function middleware(request: NextRequest) {
     secret: process.env.NEXTAUTH_SECRET || "um-segredo-muito-seguro-que-deve-ser-substituido",
   })
 
-  // Log para depuração
-  console.log(`[Middleware] Rota: ${pathname}, Token:`, token ? 'Presente' : 'Ausente')
-  if (token) {
-    console.log(`[Middleware] Usuário: ${token.email}, Role: ${token.role || 'não definido'}`)
+  // Log estruturado sem dados sensíveis (apenas em desenvolvimento)
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`[Middleware] Route: ${pathname}, Auth:`, token ? 'authenticated' : 'unauthenticated')
+    if (token) {
+      console.log(`[Middleware] User role: ${token.role || 'user'}`)
+    }
   }
 
   // Se não houver token e não for uma rota pública, redirecionar para login

@@ -15,10 +15,10 @@ async function isAdmin(email: string) {
 // Atualizar usuário
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const userId = params.id;
+    const { id: userId } = await params;
     
     // Verificar autenticação
     const token = await getToken({ req: request });
@@ -122,10 +122,10 @@ export async function PUT(
 // Excluir usuário
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const userId = params.id;
+    const { id: userId } = await params;
     
     // Verificar autenticação
     const token = await getToken({ req: request });

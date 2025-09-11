@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
     const timeRange = searchParams.get('timeRange') || 'month';
     
     // Definir período de tempo
-    let startDate = new Date();
+    const startDate = new Date();
     switch (timeRange) {
       case 'week':
         startDate.setDate(startDate.getDate() - 7);

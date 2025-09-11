@@ -1,7 +1,13 @@
-import CryptoJS from 'crypto-js';
+import { randomBytes, createHmac, timingSafeEqual } from 'crypto';
 
-// Chave para tokens CSRF - em produção, isso deve vir de variáveis de ambiente
-const CSRF_SECRET = process.env.CSRF_SECRET || 'uma-chave-csrf-muito-segura-que-deve-ser-substituida';
+// Chave para tokens CSRF - DEVE vir de variáveis de ambiente
+const CSRF_SECRET = process.env.CSRF_SECRET || (() => {
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('CSRF_SECRET environment variable is required in production');
+  }
+  console.warn('WARNING: Using default CSRF_SECRET in development. Set CSRF_SECRET environment variable.');
+  return 'development-only-csrf-key-not-for-production';
+})();
 
 /**
  * Gera um token CSRF
@@ -9,15 +15,18 @@ const CSRF_SECRET = process.env.CSRF_SECRET || 'uma-chave-csrf-muito-segura-que-
  */
 export function generateCsrfToken(): string {
   const timestamp = Date.now().toString();
-  const randomString = Math.random().toString(36).substring(2, 15);
-  const data = `${timestamp}:${randomString}`;
+  // Usar randomBytes para segurança criptográfica
+  const randomBytes32 = randomBytes(16).toString('hex');
+  const data = `${timestamp}:${randomBytes32}`;
   
-  // Criar um hash HMAC do timestamp e string aleatória
-  const hmac = CryptoJS.HmacSHA256(data, CSRF_SECRET);
+  // Criar um hash HMAC do timestamp e bytes aleatórios
+  const hmac = createHmac('sha256', CSRF_SECRET)
+    .update(data)
+    .digest('hex');
   const token = `${data}:${hmac}`;
   
   // Codificar em base64 para uso em formulários
-  return CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(token));
+  return Buffer.from(token).toString('base64');
 }
 
 /**
@@ -29,7 +38,7 @@ export function generateCsrfToken(): string {
 export function validateCsrfToken(token: string, maxAge: number = 3600000): boolean {
   try {
     // Decodificar o token
-    const decodedToken = CryptoJS.enc.Utf8.stringify(CryptoJS.enc.Base64.parse(token));
+    const decodedToken = Buffer.from(token, 'base64').toString('utf8');
     const [timestamp, randomString, receivedHmac] = decodedToken.split(':');
     
     if (!timestamp || !randomString || !receivedHmac) {
@@ -46,12 +55,24 @@ export function validateCsrfToken(token: string, maxAge: number = 3600000): bool
     
     // Recalcular o HMAC para verificar a integridade
     const data = `${timestamp}:${randomString}`;
-    const expectedHmac = CryptoJS.HmacSHA256(data, CSRF_SECRET).toString();
+    const expectedHmac = createHmac('sha256', CSRF_SECRET)
+      .update(data)
+      .digest('hex');
     
-    // Comparar os HMACs
-    return expectedHmac === receivedHmac;
+    // Usar timingSafeEqual para evitar timing attacks
+    const expectedBuffer = Buffer.from(expectedHmac, 'hex');
+    const receivedBuffer = Buffer.from(receivedHmac, 'hex');
+    
+    if (expectedBuffer.length !== receivedBuffer.length) {
+      return false;
+    }
+    
+    return timingSafeEqual(expectedBuffer, receivedBuffer);
   } catch (error) {
-    console.error('Erro ao validar token CSRF:', error);
+    // Não logar detalhes do erro por segurança
+    if (process.env.NODE_ENV === 'development') {
+      console.error('CSRF token validation error:', (error as Error).message);
+    }
     return false;
   }
 }
