@@ -61,8 +61,8 @@ export default function Register() {
       setTimeout(() => {
         router.push('/login')
       }, 2000)
-    } catch (err: any) {
-      setError(err.message || 'Ocorreu um erro ao registrar o usuário')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ocorreu um erro ao registrar o usuário')
       console.error('Erro de registro:', err)
     } finally {
       setLoading(false)

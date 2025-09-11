@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import UserStatistics from '@/components/admin/UserStatistics'
 import ActivityLogs from '@/components/admin/ActivityLogs'
 import DataExport from '@/components/admin/DataExport'
@@ -67,8 +66,8 @@ export default function AdminUsers() {
       const data = await response.json()
       setUsers(data.users)
       setTotalPages(data.totalPages)
-    } catch (err: any) {
-      setError(err.message || 'Ocorreu um erro ao buscar os usuários')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ocorreu um erro ao buscar os usuários')
       console.error('Erro ao buscar usuários:', err)
     } finally {
       setLoading(false)
@@ -76,7 +75,7 @@ export default function AdminUsers() {
   }
 
   // Função para exportar dados
-  const handleExportData = async (format: string, dataType: string, options: any) => {
+  const handleExportData = async (format: string, dataType: string, options: Record<string, unknown>) => {
     try {
       const response = await fetch(`/api/admin/export?format=${format}&dataType=${dataType}`, {
         method: 'POST',
@@ -92,7 +91,7 @@ export default function AdminUsers() {
 
       const data = await response.json()
       return data.results
-    } catch (err: any) {
+    } catch (err) {
       console.error('Erro ao exportar dados:', err)
       throw err
     }
@@ -133,8 +132,8 @@ export default function AdminUsers() {
       // Atualizar lista de usuários
       fetchUsers()
       setShowEditModal(false)
-    } catch (err: any) {
-      setError(err.message || 'Ocorreu um erro ao atualizar o usuário')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ocorreu um erro ao atualizar o usuário')
       console.error('Erro ao atualizar usuário:', err)
     } finally {
       setLoading(false)
@@ -165,8 +164,8 @@ export default function AdminUsers() {
       // Atualizar lista de usuários
       fetchUsers()
       setShowDeleteModal(false)
-    } catch (err: any) {
-      setError(err.message || 'Ocorreu um erro ao excluir o usuário')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ocorreu um erro ao excluir o usuário')
       console.error('Erro ao excluir usuário:', err)
     } finally {
       setLoading(false)

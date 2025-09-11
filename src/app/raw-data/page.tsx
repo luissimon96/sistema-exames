@@ -13,7 +13,6 @@ import {
   Filler
 } from 'chart.js'
 import { Line } from 'react-chartjs-2'
-import * as XLSX from 'xlsx'
 import { v4 as uuidv4 } from 'uuid'
 import ExcelJS from 'exceljs'
 

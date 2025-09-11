@@ -65,14 +65,14 @@ export async function GET(request: NextRequest) {
         headers: { 'Content-Type': 'application/json' },
       }
     );
-  } catch (error: any) {
+  } catch (error) {
     console.error('Erro ao buscar perfil:', error);
     
     return new NextResponse(
       JSON.stringify({
         success: false,
         error: 'Erro ao buscar perfil',
-        message: error.message || 'Ocorreu um erro interno ao processar sua solicitação',
+        message: error instanceof Error ? error.message : 'Ocorreu um erro interno ao processar sua solicitação',
       }),
       {
         status: 500,

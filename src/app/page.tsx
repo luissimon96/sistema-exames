@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect } from 'react'
-import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 
@@ -14,7 +13,7 @@ import FAQSection from './components/landing/FAQSection'
 import CTASection from './components/landing/CTASection'
 
 export default function Home() {
-  const { data: session, status } = useSession()
+  const { status } = useSession()
   const router = useRouter()
 
   // Redirecionar usuários autenticados para o dashboard

@@ -9,11 +9,11 @@ const nextConfig = {
     scrollRestoration: true
   },
   serverExternalPackages: ['pdf-parse'],
-  webpack: (config, { isServer }) => {
+  webpack: (config: Record<string, unknown>, { isServer }: { isServer: boolean }) => {
     // Adicionar polyfill para crypto no lado do servidor
     if (isServer) {
-      config.externals = config.externals || [];
-      config.externals.push('crypto');
+      (config as any).externals = (config as any).externals || [];
+      (config as any).externals.push('crypto');
     }
     return config;
   },

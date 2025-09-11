@@ -32,7 +32,7 @@ export function decryptData(encryptedData: string): string | null {
  * @param data Objeto a ser criptografado
  * @returns Dados criptografados em formato de string
  */
-export function encryptObject(data: any): string {
+export function encryptObject(data: Record<string, unknown>): string {
   const jsonString = JSON.stringify(data);
   return encryptData(jsonString);
 }

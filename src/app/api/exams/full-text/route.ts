@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
     const results = JSON.parse(fileContent)
 
     // Retornar apenas os campos necessários para reduzir o tamanho da resposta
-    const sanitizedResults = results.map((result: any) => {
+    const sanitizedResults = results.map((result: Record<string, unknown>) => {
       // Descriptografar o texto completo se existir
       let textoCompleto = '';
       if (result.textoCompleto) {

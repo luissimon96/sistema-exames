@@ -61,14 +61,14 @@ export async function POST(request: NextRequest) {
         headers: { 'Content-Type': 'application/json' },
       }
     );
-  } catch (error: any) {
+  } catch (error) {
     console.error('Erro ao redefinir senha:', error);
 
     return new NextResponse(
       JSON.stringify({
         success: false,
         error: 'Erro ao redefinir senha',
-        message: error.message || 'Ocorreu um erro ao redefinir sua senha',
+        message: error instanceof Error ? error.message : 'Ocorreu um erro ao redefinir sua senha',
       }),
       {
         status: 500,

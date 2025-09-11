@@ -267,6 +267,7 @@ export async function POST(request: NextRequest) {
 
       // Versão pública contém apenas os valores numéricos e metadados, sem textos completos
       const publicResults = sanitizedResults.map(result => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { textoResumido, rawText, ...publicData } = result;
         return publicData;
       });

@@ -135,14 +135,14 @@ export async function POST(request: NextRequest) {
         headers: { 'Content-Type': 'application/json' },
       }
     );
-  } catch (error: any) {
+  } catch (error) {
     console.error('Erro ao fazer upload de imagem:', error);
     
     return new NextResponse(
       JSON.stringify({
         success: false,
         error: 'Erro ao fazer upload de imagem',
-        message: error.message || 'Ocorreu um erro interno ao processar sua solicitação',
+        message: error instanceof Error ? error.message : 'Ocorreu um erro interno ao processar sua solicitação',
       }),
       {
         status: 500,

@@ -4,11 +4,12 @@ import path from 'path';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
+  const { path: pathSegments } = await params;
   try {
     // Obter o caminho do arquivo
-    const filePath = path.join(process.cwd(), 'uploads', ...params.path);
+    const filePath = path.join(process.cwd(), 'uploads', ...pathSegments);
     
     // Verificar se o arquivo existe
     if (!fs.existsSync(filePath)) {

@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import prisma from '@/lib/prisma';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     // Verificar se o usuário está autenticado
     const session = await getServerSession(authOptions);

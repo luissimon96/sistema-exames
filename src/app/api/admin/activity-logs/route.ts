@@ -53,7 +53,12 @@ export async function GET(request: NextRequest) {
     const endDate = searchParams.get('endDate') || '';
     
     // Construir filtro de busca
-    const where: any = {};
+    const where: Record<string, unknown> & {
+      createdAt?: {
+        gte?: Date;
+        lt?: Date;
+      };
+    } = {};
     
     // Filtro de busca por texto
     if (search) {
@@ -147,14 +152,14 @@ export async function GET(request: NextRequest) {
         headers: { 'Content-Type': 'application/json' },
       }
     );
-  } catch (error: any) {
+  } catch (error) {
     console.error('Erro ao buscar logs de atividade:', error);
     
     return new NextResponse(
       JSON.stringify({
         success: false,
         error: 'Erro ao buscar logs de atividade',
-        message: error.message || 'Ocorreu um erro interno ao processar sua solicitação',
+        message: error instanceof Error ? error.message : 'Ocorreu um erro interno ao processar sua solicitação',
       }),
       {
         status: 500,

@@ -36,8 +36,8 @@ export default function ForgotPassword() {
       }
       
       setSuccess(true)
-    } catch (err: any) {
-      setError(err.message || 'Ocorreu um erro ao solicitar a redefinição de senha')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ocorreu um erro ao solicitar a redefinição de senha')
       console.error('Erro ao solicitar redefinição de senha:', err)
     } finally {
       setLoading(false)

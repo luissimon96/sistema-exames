@@ -76,8 +76,8 @@ export default function UserStatistics() {
         
         const data = await response.json()
         setStats(data)
-      } catch (err: any) {
-        setError(err.message || 'Ocorreu um erro ao buscar as estatísticas')
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Ocorreu um erro ao buscar as estatísticas')
         console.error('Erro ao buscar estatísticas:', err)
       } finally {
         setLoading(false)

@@ -5,7 +5,6 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { QRCodeCanvas } from 'qrcode.react'
 import { useDropzone } from 'react-dropzone'
-import Image from 'next/image'
 import ImageCropper from '@/components/ImageCropper'
 import ThemeSelector from '@/components/ThemeSelector'
 import SocialMediaLinks from '@/components/SocialMediaLinks'
@@ -206,8 +205,8 @@ export default function Profile() {
       }
 
       setSuccess('Perfil atualizado com sucesso')
-    } catch (err: any) {
-      setError(err.message || 'Ocorreu um erro ao atualizar o perfil')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ocorreu um erro ao atualizar o perfil')
       console.error('Erro ao atualizar perfil:', err)
     } finally {
       setLoading(false)
@@ -259,8 +258,8 @@ export default function Profile() {
       setCurrentPassword('')
       setNewPassword('')
       setConfirmPassword('')
-    } catch (err: any) {
-      setError(err.message || 'Ocorreu um erro ao alterar a senha')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ocorreu um erro ao alterar a senha')
       console.error('Erro ao alterar senha:', err)
     } finally {
       setLoading(false)
@@ -282,8 +281,8 @@ export default function Profile() {
 
       setTwoFactorSecret(data.secret)
       setShowTwoFactorSetup(true)
-    } catch (err: any) {
-      setError(err.message || 'Ocorreu um erro ao configurar a autenticação de dois fatores')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ocorreu um erro ao configurar a autenticação de dois fatores')
       console.error('Erro ao configurar 2FA:', err)
     } finally {
       setLoading(false)
@@ -321,8 +320,8 @@ export default function Profile() {
       setTwoFactorEnabled(true)
       setShowTwoFactorSetup(false)
       setSuccess('Autenticação de dois fatores ativada com sucesso')
-    } catch (err: any) {
-      setError(err.message || 'Ocorreu um erro ao ativar a autenticação de dois fatores')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ocorreu um erro ao ativar a autenticação de dois fatores')
       console.error('Erro ao ativar 2FA:', err)
     } finally {
       setLoading(false)
@@ -347,8 +346,8 @@ export default function Profile() {
 
       setTwoFactorEnabled(false)
       setSuccess('Autenticação de dois fatores desativada com sucesso')
-    } catch (err: any) {
-      setError(err.message || 'Ocorreu um erro ao desativar a autenticação de dois fatores')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ocorreu um erro ao desativar a autenticação de dois fatores')
       console.error('Erro ao desativar 2FA:', err)
     } finally {
       setLoading(false)

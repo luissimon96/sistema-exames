@@ -1,12 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import * as XLSX from 'xlsx'
 import { CSVLink } from 'react-csv'
 import ExcelJS from 'exceljs';
 
 interface DataExportProps {
-  onExport: (format: string, dataType: string, options: any) => Promise<any>
+  onExport: (format: string, dataType: string, options: Record<string, unknown>) => Promise<unknown>
 }
 
 export default function DataExport({ onExport }: DataExportProps) {
@@ -89,8 +88,8 @@ export default function DataExport({ onExport }: DataExportProps) {
       }
       
       setSuccess(`Dados exportados com sucesso no formato ${exportFormat.toUpperCase()}`)
-    } catch (err: any) {
-      setError(err.message || 'Ocorreu um erro ao exportar os dados')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ocorreu um erro ao exportar os dados')
       console.error('Erro ao exportar dados:', err)
     } finally {
       setLoading(false)
@@ -187,7 +186,7 @@ export default function DataExport({ onExport }: DataExportProps) {
           </label>
           <div className="space-y-2">
             {dataType in dataTypeFields &&
-              (dataTypeFields as any)[dataType].map((field: any) => (
+              (dataTypeFields as Record<string, { id: string; label: string; description: string }[]>)[dataType].map((field: { id: string; label: string; description: string }) => (
                 <div key={field.id} className="flex items-start">
                   <div className="flex items-center h-5">
                     <input

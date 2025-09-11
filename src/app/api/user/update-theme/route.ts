@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Preparar dados para atualização
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       updatedAt: new Date(),
     };
 
@@ -91,14 +91,14 @@ export async function POST(request: NextRequest) {
         headers: { 'Content-Type': 'application/json' },
       }
     );
-  } catch (error: any) {
+  } catch (error) {
     console.error('Erro ao atualizar tema:', error);
 
     return new NextResponse(
       JSON.stringify({
         success: false,
         error: 'Erro ao atualizar tema',
-        message: error.message || 'Ocorreu um erro interno ao processar sua solicitação',
+        message: error instanceof Error ? error.message : 'Ocorreu um erro interno ao processar sua solicitação',
       }),
       {
         status: 500,

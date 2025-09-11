@@ -51,7 +51,7 @@ export default function TestimonialsSection() {
                   <div className="flex-1">
                     <p className="text-sm font-medium text-blue-600">Depoimento</p>
                     <div className="mt-2">
-                      <p className="text-gray-500 text-base italic">"{testimonial.content}"</p>
+                      <p className="text-gray-500 text-base italic">&ldquo;{testimonial.content}&rdquo;</p>
                     </div>
                   </div>
                   <div className="mt-6 flex items-center">

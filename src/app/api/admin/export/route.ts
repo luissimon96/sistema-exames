@@ -64,12 +64,12 @@ export async function POST(request: NextRequest) {
     }
     
     // Preparar dados para exportação
-    let results: any[] = [];
+    let results: Record<string, unknown>[] = [];
     
     switch (dataType) {
       case 'users':
         // Definir campos a incluir
-        const userSelect: any = {
+        const userSelect: Record<string, unknown> = {
           id: true,
           createdAt: true,
           updatedAt: true,
@@ -98,7 +98,12 @@ export async function POST(request: NextRequest) {
         }
         
         // Construir filtro
-        const userWhere: any = {};
+        const userWhere: Record<string, unknown> & {
+          createdAt?: {
+            gte?: Date;
+            lt?: Date;
+          };
+        } = {};
         
         if (startDate || endDate) {
           userWhere.createdAt = {};
@@ -121,26 +126,26 @@ export async function POST(request: NextRequest) {
         
         // Formatar dados
         results = users.map((user) => {
-          const formattedUser: any = {};
+          const formattedUser: Record<string, unknown> = {};
           
           // Formatar datas
-          if (user.createdAt) {
+          if (user.createdAt && user.createdAt instanceof Date) {
             formattedUser.createdAt = user.createdAt.toISOString();
           }
           
-          if (user.updatedAt) {
+          if (user.updatedAt && user.updatedAt instanceof Date) {
             formattedUser.updatedAt = user.updatedAt.toISOString();
           }
           
-          if (user.lastLogin) {
+          if (user.lastLogin && user.lastLogin instanceof Date) {
             formattedUser.lastLogin = user.lastLogin.toISOString();
           }
           
-          if (user.lastActivity) {
+          if (user.lastActivity && user.lastActivity instanceof Date) {
             formattedUser.lastActivity = user.lastActivity.toISOString();
           }
           
-          if (user.emailVerified) {
+          if (user.emailVerified && user.emailVerified instanceof Date) {
             formattedUser.emailVerified = user.emailVerified.toISOString();
           }
           
@@ -157,7 +162,7 @@ export async function POST(request: NextRequest) {
         
       case 'activities':
         // Definir campos a incluir
-        const activitySelect: any = {
+        const activitySelect: Record<string, unknown> = {
           id: true,
           createdAt: true,
           action: true,
@@ -180,7 +185,12 @@ export async function POST(request: NextRequest) {
         }
         
         // Construir filtro
-        const activityWhere: any = {};
+        const activityWhere: Record<string, unknown> & {
+          createdAt?: {
+            gte?: Date;
+            lt?: Date;
+          };
+        } = {};
         
         if (startDate || endDate) {
           activityWhere.createdAt = {};
@@ -203,19 +213,19 @@ export async function POST(request: NextRequest) {
         
         // Formatar dados
         results = activities.map((activity) => {
-          const formattedActivity: any = {
+          const formattedActivity: Record<string, unknown> = {
             id: activity.id,
             action: activity.action,
-            createdAt: activity.createdAt.toISOString(),
+            createdAt: typeof activity.createdAt === 'object' && activity.createdAt && 'toISOString' in activity.createdAt ? (activity.createdAt as Date).toISOString() : activity.createdAt,
           };
           
           if (activity.userId) {
             formattedActivity.userId = activity.userId;
           }
           
-          if (activity.user) {
-            formattedActivity.userName = activity.user.name;
-            formattedActivity.userEmail = activity.user.email;
+          if (activity.user && typeof activity.user === 'object') {
+            formattedActivity.userName = (activity.user as any).name;
+            formattedActivity.userEmail = (activity.user as any).email;
           }
           
           if (activity.details) {
@@ -293,14 +303,14 @@ export async function POST(request: NextRequest) {
         headers: { 'Content-Type': 'application/json' },
       }
     );
-  } catch (error: any) {
+  } catch (error) {
     console.error('Erro ao exportar dados:', error);
     
     return new NextResponse(
       JSON.stringify({
         success: false,
         error: 'Erro ao exportar dados',
-        message: error.message || 'Ocorreu um erro interno ao processar sua solicitação',
+        message: error instanceof Error ? error.message : 'Ocorreu um erro interno ao processar sua solicitação',
       }),
       {
         status: 500,

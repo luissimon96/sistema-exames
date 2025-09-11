@@ -102,14 +102,14 @@ export async function PUT(
         headers: { 'Content-Type': 'application/json' },
       }
     );
-  } catch (error: any) {
+  } catch (error) {
     console.error('Erro ao atualizar usuário:', error);
     
     return new NextResponse(
       JSON.stringify({
         success: false,
         error: 'Erro ao atualizar usuário',
-        message: error.message || 'Ocorreu um erro interno ao processar sua solicitação',
+        message: error instanceof Error ? error.message : 'Ocorreu um erro interno ao processar sua solicitação',
       }),
       {
         status: 500,
@@ -208,14 +208,14 @@ export async function DELETE(
         headers: { 'Content-Type': 'application/json' },
       }
     );
-  } catch (error: any) {
+  } catch (error) {
     console.error('Erro ao excluir usuário:', error);
     
     return new NextResponse(
       JSON.stringify({
         success: false,
         error: 'Erro ao excluir usuário',
-        message: error.message || 'Ocorreu um erro interno ao processar sua solicitação',
+        message: error instanceof Error ? error.message : 'Ocorreu um erro interno ao processar sua solicitação',
       }),
       {
         status: 500,

@@ -39,8 +39,8 @@ export default function ResetPassword() {
         }
         
         setTokenValid(true)
-      } catch (err: any) {
-        setError(err.message || 'Token inválido ou expirado')
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Token inválido ou expirado')
         setTokenValid(false)
       } finally {
         setValidating(false)
@@ -100,8 +100,8 @@ export default function ResetPassword() {
       setTimeout(() => {
         router.push('/login')
       }, 3000)
-    } catch (err: any) {
-      setError(err.message || 'Ocorreu um erro ao redefinir a senha')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ocorreu um erro ao redefinir a senha')
       console.error('Erro ao redefinir senha:', err)
     } finally {
       setLoading(false)

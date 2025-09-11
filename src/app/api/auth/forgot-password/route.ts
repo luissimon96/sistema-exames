@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
         headers: { 'Content-Type': 'application/json' },
       }
     );
-  } catch (error: any) {
+  } catch (error) {
     console.error('Erro ao processar solicitação de redefinição de senha:', error);
 
     return new NextResponse(

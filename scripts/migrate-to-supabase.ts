@@ -152,9 +152,8 @@ async function main() {
           data: {
             id: activity.id,
             userId: activity.userId,
-            type: activity.type,
-            description: activity.description,
-            metadata: activity.metadata,
+            action: activity.action,
+            details: activity.details,
             createdAt: activity.createdAt,
             ipAddress: activity.ipAddress,
             userAgent: activity.userAgent,

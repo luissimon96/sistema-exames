@@ -32,8 +32,8 @@ export default function EmailVerification({
       
       setSuccess('Um código de verificação foi enviado para o seu email.')
       setShowVerificationForm(true)
-    } catch (err: any) {
-      setError(err.message || 'Ocorreu um erro ao solicitar a verificação de email.')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ocorreu um erro ao solicitar a verificação de email.')
     } finally {
       setLoading(false)
     }
@@ -59,8 +59,8 @@ export default function EmailVerification({
       } else {
         setError('Código de verificação inválido. Por favor, tente novamente.')
       }
-    } catch (err: any) {
-      setError(err.message || 'Ocorreu um erro ao verificar o código.')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ocorreu um erro ao verificar o código.')
     } finally {
       setLoading(false)
     }

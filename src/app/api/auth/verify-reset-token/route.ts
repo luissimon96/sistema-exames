@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
         headers: { 'Content-Type': 'application/json' },
       }
     );
-  } catch (error: any) {
+  } catch (error) {
     console.error('Erro ao verificar token de redefinição de senha:', error);
 
     return new NextResponse(

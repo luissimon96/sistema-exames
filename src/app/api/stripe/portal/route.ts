@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { createCustomerPortalSession } from '@/lib/stripe';
 import prisma from '@/lib/prisma';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
-export async function POST(req: NextRequest) {
+export async function POST() {
   try {
     // Verificar se o usuário está autenticado
     const session = await getServerSession(authOptions);

@@ -33,12 +33,12 @@ export default function ThemeSelector({
   ]
   
   // Função para lidar com a mudança de cor
-  const handleColorChange = (color: any) => {
+  const handleColorChange = (color: { hex: string }) => {
     setAccentColor(color.hex)
   }
   
   // Função para aplicar a cor selecionada
-  const handleColorChangeComplete = (color: any) => {
+  const handleColorChangeComplete = (color: { hex: string }) => {
     onAccentColorChange(color.hex)
   }
   

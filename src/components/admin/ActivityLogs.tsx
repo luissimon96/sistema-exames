@@ -52,8 +52,8 @@ export default function ActivityLogs() {
         const data = await response.json()
         setLogs(data.logs)
         setTotalPages(data.totalPages)
-      } catch (err: any) {
-        setError(err.message || 'Ocorreu um erro ao buscar os logs de atividade')
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Ocorreu um erro ao buscar os logs de atividade')
         console.error('Erro ao buscar logs de atividade:', err)
       } finally {
         setLoading(false)

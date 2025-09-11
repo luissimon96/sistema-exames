@@ -4,11 +4,6 @@ import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import CsrfToken from '../components/CsrfToken'
 
-interface ApiError {
-  success: false
-  error: string
-  details?: string
-}
 
 export default function UploadPage() {
   const [files, setFiles] = useState<File[]>([])
