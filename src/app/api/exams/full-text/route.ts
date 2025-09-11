@@ -67,14 +67,14 @@ export async function GET(request: NextRequest) {
       let textoCompleto = '';
       if (result.textoCompleto) {
         try {
-          const decrypted = decryptData(result.textoCompleto);
-          textoCompleto = decrypted || result.textoResumido || '';
+          const decrypted = decryptData(result.textoCompleto as string);
+          textoCompleto = decrypted || (result.textoResumido as string) || '';
         } catch (error) {
           console.error('Erro ao descriptografar texto:', error);
-          textoCompleto = result.textoResumido || '';
+          textoCompleto = (result.textoResumido as string) || '';
         }
       } else {
-        textoCompleto = result.textoResumido || '';
+        textoCompleto = (result.textoResumido as string) || '';
       }
 
       return {

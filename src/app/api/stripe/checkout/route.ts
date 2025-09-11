@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
 
     // Criar sessão de checkout
     const checkoutSession = await createCheckoutSession(
-      session.user.id,
+      session.user.id || '',
       session.user.email || '',
       plan as 'pro' | 'full',
       session.user.name || undefined,

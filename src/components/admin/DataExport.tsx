@@ -71,11 +71,11 @@ export default function DataExport({ onExport }: DataExportProps) {
         const worksheet = workbook.addWorksheet(dataType);
 
         // Add headers dynamically based on data keys
-        const headers = Object.keys(data[0] || {}).map((key) => ({ header: key, key }));
+        const headers = Object.keys((data as Record<string, unknown>[])[0] || {}).map((key) => ({ header: key, key }));
         worksheet.columns = headers;
 
         // Add data rows
-        worksheet.addRows(data);
+        worksheet.addRows(data as Record<string, unknown>[]);
 
         // Generate the file and trigger download
         const buffer = await workbook.xlsx.writeBuffer();

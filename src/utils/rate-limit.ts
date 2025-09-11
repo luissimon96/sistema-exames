@@ -24,7 +24,7 @@ export function rateLimit(
   windowMs: number = 60 * 1000
 ): NextResponse | undefined {
   // Obter o IP do cliente
-  const ip = request.ip || 'unknown';
+  const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
   const now = Date.now();
   
   // Limpar entradas expiradas

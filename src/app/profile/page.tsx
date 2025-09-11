@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { QRCodeCanvas } from 'qrcode.react'
 import { useDropzone } from 'react-dropzone'
 import ImageCropper from '@/components/ImageCropper'
@@ -415,10 +416,11 @@ export default function Profile() {
                   <div className="flex-shrink-0">
                     <div className="relative h-24 w-24 rounded-full overflow-hidden bg-gray-100 border border-gray-200">
                       {profileImage ? (
-                        <img
+                        <Image
                           src={profileImage}
                           alt="Foto de perfil"
-                          className="h-full w-full object-cover"
+                          fill
+                          className="object-cover"
                         />
                       ) : (
                         <div className="h-full w-full flex items-center justify-center bg-gray-200 text-gray-400">

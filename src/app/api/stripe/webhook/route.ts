@@ -4,6 +4,14 @@ import Stripe from 'stripe';
 import stripe from '@/lib/stripe';
 import prisma from '@/lib/prisma';
 
+interface StripeSubscription {
+  id: string;
+  status: string;
+  current_period_start: number;
+  current_period_end: number;
+  canceled_at?: number | null;
+}
+
 // Desativar o parsing do corpo da requisição
 export const config = {
   api: {
@@ -12,10 +20,17 @@ export const config = {
 };
 
 // Função para ler o corpo da requisição como texto
-async function readBody(readable: ReadableStream) {
+async function readBody(readable: ReadableStream<Uint8Array>) {
+  const reader = readable.getReader();
   const chunks = [];
-  for await (const chunk of readable) {
-    chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
+  try {
+    let result = await reader.read();
+    while (!result.done) {
+      chunks.push(result.value);
+      result = await reader.read();
+    }
+  } finally {
+    reader.releaseLock();
   }
   return Buffer.concat(chunks).toString('utf8');
 }
@@ -26,7 +41,8 @@ export async function POST(req: NextRequest) {
     const body = await readBody(req.body as ReadableStream);
     
     // Obter o cabeçalho de assinatura do Stripe
-    const signature = headers().get('stripe-signature') || '';
+    const headerList = await headers();
+    const signature = headerList.get('stripe-signature') || '';
     
     // Verificar a assinatura do webhook
     let event: Stripe.Event;
@@ -142,10 +158,10 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
       subscriptionId: subscription.id,
       subscriptionStatus: subscription.status,
       subscriptionPlan: plan,
-      subscriptionPeriodStart: new Date(subscription.current_period_start * 1000),
-      subscriptionPeriodEnd: new Date(subscription.current_period_end * 1000),
-      subscriptionCanceledAt: subscription.canceled_at
-        ? new Date(subscription.canceled_at * 1000)
+      subscriptionPeriodStart: new Date((subscription as unknown as StripeSubscription).current_period_start * 1000),
+      subscriptionPeriodEnd: new Date((subscription as unknown as StripeSubscription).current_period_end * 1000),
+      subscriptionCanceledAt: (subscription as unknown as StripeSubscription).canceled_at
+        ? new Date((subscription as unknown as StripeSubscription).canceled_at! * 1000)
         : null,
     },
   });

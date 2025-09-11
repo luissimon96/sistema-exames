@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import UserStatistics from '@/components/admin/UserStatistics'
@@ -36,23 +36,8 @@ export default function AdminUsers() {
   // Estado para controlar a guia ativa
   const [activeTab, setActiveTab] = useState('users') // 'users', 'statistics', 'logs', 'export'
 
-  // Verificar se o usuário é admin
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/login')
-      return
-    }
-
-    if (status === 'authenticated' && session?.user?.role !== 'admin') {
-      router.push('/dashboard')
-      return
-    }
-
-    fetchUsers()
-  }, [session, status, router, currentPage, searchTerm])
-
   // Buscar usuários
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
@@ -72,7 +57,22 @@ export default function AdminUsers() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [currentPage, searchTerm])
+
+  // Verificar se o usuário é admin
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/login')
+      return
+    }
+
+    if (status === 'authenticated' && session?.user?.role !== 'admin') {
+      router.push('/dashboard')
+      return
+    }
+
+    fetchUsers()
+  }, [session, status, router, fetchUsers])
 
   // Função para exportar dados
   const handleExportData = async (format: string, dataType: string, options: Record<string, unknown>) => {

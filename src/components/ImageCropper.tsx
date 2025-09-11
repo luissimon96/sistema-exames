@@ -114,6 +114,7 @@ export default function ImageCropper({
                 aspect={aspect}
                 circularCrop
               >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   ref={imgRef}
                   alt="Imagem para recorte"

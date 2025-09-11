@@ -224,8 +224,9 @@ export async function POST(request: NextRequest) {
           }
           
           if (activity.user && typeof activity.user === 'object') {
-            formattedActivity.userName = (activity.user as any).name;
-            formattedActivity.userEmail = (activity.user as any).email;
+            const user = activity.user as { name?: string | null; email?: string | null };
+            formattedActivity.userName = user.name;
+            formattedActivity.userEmail = user.email;
           }
           
           if (activity.details) {

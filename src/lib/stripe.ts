@@ -3,7 +3,7 @@ import prisma from './prisma';
 
 // Inicializar o cliente Stripe com a chave secreta
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2023-10-16', // Usar a versão mais recente da API
+  apiVersion: '2025-03-31.basil', // Usar a versão mais recente da API
 });
 
 // Tipos para os planos de assinatura
