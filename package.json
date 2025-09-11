@@ -5,12 +5,13 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "dev:secure": "next dev --turbopack",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
     "generate-certs": "./scripts/generate-certs.sh",
     "security-audit": "npm audit --production",
     "prepare": "npm run security-audit",
+    "postinstall": "prisma generate",
     "prisma:studio": "prisma studio",
     "db:seed": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' scripts/seed-db.ts"
   },
