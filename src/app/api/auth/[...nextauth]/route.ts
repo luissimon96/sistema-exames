@@ -31,8 +31,11 @@ export const authOptions: NextAuthOptions = {
         }
 
         console.log('Environment check:');
+        console.log('NODE_ENV:', process.env.NODE_ENV);
         console.log('DATABASE_URL set:', !!process.env.DATABASE_URL);
+        console.log('DATABASE_URL length:', process.env.DATABASE_URL?.length || 0);
         console.log('NEXTAUTH_SECRET set:', !!process.env.NEXTAUTH_SECRET);
+        console.log('Prisma client available:', !!prisma);
 
         let user;
         let isPasswordValid = false;
@@ -58,7 +61,12 @@ export const authOptions: NextAuthOptions = {
           isPasswordValid = user ? await verifyPassword(credentials.password, user.password || '') || false : false;
           console.log('Senha válida:', isPasswordValid);
         } catch (dbError) {
-          console.error('Database error in authorize:', dbError);
+          console.error('❌ Database error in authorize:', dbError);
+          console.error('Error details:', {
+            name: dbError instanceof Error ? dbError.name : 'Unknown',
+            message: dbError instanceof Error ? dbError.message : 'Unknown error',
+            stack: dbError instanceof Error ? dbError.stack : 'No stack trace'
+          });
           return null;
         }
 
