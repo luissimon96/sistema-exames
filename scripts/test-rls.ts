@@ -109,7 +109,7 @@ async function testRLS() {
     }, {} as Record<string, string[]>);
 
     Object.entries(byTable).forEach(([table, policyNames]) => {
-      console.log(`   🛡️ ${table}: ${policyNames.length} policies`);
+      console.log(`   🛡️ ${table}: ${(policyNames as string[]).length} policies`);
     });
 
   } catch (error) {
