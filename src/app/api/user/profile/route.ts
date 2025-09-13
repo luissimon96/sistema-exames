@@ -1,83 +1,180 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getToken } from 'next-auth/jwt';
-import prisma from '@/lib/prisma';
+/**
+ * User Profile API Route - Clean Architecture Implementation
+ * Sistema Exames - API Layer
+ */
 
-export async function GET(request: NextRequest) {
+import { NextRequest } from 'next/server';
+import { 
+  HttpResponse, 
+  HttpRequest, 
+  withObservability, 
+  RequestValidator 
+} from '../../../../shared/infrastructure/http';
+import { getUpdateUserProfileUseCase } from '../../../../shared/infrastructure/container';
+import { logger } from '../../../../shared/infrastructure/logger';
+
+// Request/Response DTOs
+interface UpdateProfileRequest {
+  name?: string;
+  bio?: string;
+  imageUrl?: string;
+}
+
+interface UpdateProfileResponse {
+  user: {
+    id: string;
+    email: string;
+    profile: {
+      name: string;
+      bio?: string;
+      imageUrl?: string;
+    };
+    preferences: {
+      theme: string;
+      primaryColor: string;
+      secondaryColor: string;
+    };
+    emailVerified: boolean;
+    twoFactorEnabled: boolean;
+    subscription: {
+      tier: string;
+      status: string;
+      maxUploadsPerMonth: number;
+      canAccessProFeatures: boolean;
+      canManageFamilyAccounts: boolean;
+    };
+    createdAt: string;
+    updatedAt: string;
+  };
+  updatedFields: string[];
+}
+
+// GET handler - Get user profile
+async function handleGetProfile(request: NextRequest) {
+  const userId = await HttpRequest.getAuthenticatedUserId(request);
+  if (!userId) {
+    return HttpResponse.unauthorized();
+  }
+
   try {
-    // Verificar autenticação
-    const token = await getToken({ req: request });
+    const updateUserProfileUseCase = getUpdateUserProfileUseCase();
+    const userRepository = updateUserProfileUseCase['userRepository']; // Access via use case
     
-    if (!token || !token.email) {
-      return new NextResponse(
-        JSON.stringify({
-          success: false,
-          error: 'Não autorizado',
-          message: 'Você precisa estar autenticado para acessar esta API',
-        }),
-        {
-          status: 401,
-          headers: { 'Content-Type': 'application/json' },
-        }
-      );
+    const user = await userRepository.findById(userId);
+    if (!user) {
+      return HttpResponse.notFound('User not found');
     }
 
-    // Buscar perfil do usuário
-    const user = await prisma.user.findUnique({
-      where: { email: token.email },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        image: true,
-        role: true,
-        bio: true,
-        location: true,
-        website: true,
-        phoneNumber: true,
-        jobTitle: true,
-        company: true,
-        createdAt: true,
-        updatedAt: true,
+    const responseData: UpdateProfileResponse = {
+      user: user.toResponse(),
+      updatedFields: [], // Not applicable for GET
+    };
+
+    return HttpResponse.success(responseData);
+
+  } catch (error) {
+    logger.error('Failed to get user profile', {
+      domain: 'user',
+      layer: 'api',
+      userId,
+      error,
+    });
+
+    return HttpResponse.error(error);
+  }
+}
+
+// PUT handler - Update user profile
+async function handleUpdateProfile(request: NextRequest) {
+  const userId = await HttpRequest.getAuthenticatedUserId(request);
+  if (!userId) {
+    return HttpResponse.unauthorized();
+  }
+
+  try {
+    // Parse and validate request body
+    const body = await HttpRequest.parseJsonBody<UpdateProfileRequest>(request);
+    
+    // Basic validation
+    if (!body || Object.keys(body).length === 0) {
+      return HttpResponse.validationError('At least one profile field must be provided');
+    }
+
+    // Validate individual fields if provided
+    if (body.name !== undefined) {
+      if (typeof body.name !== 'string') {
+        return HttpResponse.validationError('Name must be a string', 'name');
+      }
+      RequestValidator.validateStringLength(body.name.trim(), 'Name', 2, 100);
+    }
+
+    if (body.bio !== undefined && body.bio !== null) {
+      if (typeof body.bio !== 'string') {
+        return HttpResponse.validationError('Bio must be a string', 'bio');
+      }
+      RequestValidator.validateStringLength(body.bio, 'Bio', 0, 500);
+    }
+
+    if (body.imageUrl !== undefined && body.imageUrl !== null && body.imageUrl.trim().length > 0) {
+      if (typeof body.imageUrl !== 'string') {
+        return HttpResponse.validationError('Image URL must be a string', 'imageUrl');
+      }
+      RequestValidator.validateUrl(body.imageUrl);
+    }
+
+    // Execute use case
+    const updateUserProfileUseCase = getUpdateUserProfileUseCase();
+    const result = await updateUserProfileUseCase.execute({
+      userId,
+      requestingUserId: userId,
+      profileData: {
+        name: body.name,
+        bio: body.bio,
+        imageUrl: body.imageUrl,
       },
     });
 
-    if (!user) {
-      return new NextResponse(
-        JSON.stringify({
-          success: false,
-          error: 'Usuário não encontrado',
-          message: 'Usuário não encontrado',
-        }),
-        {
-          status: 404,
-          headers: { 'Content-Type': 'application/json' },
-        }
-      );
+    if (result.isFailure()) {
+      return HttpResponse.error(result.getError());
     }
 
-    return new NextResponse(
-      JSON.stringify({
-        success: true,
-        ...user,
-      }),
-      {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      }
-    );
-  } catch (error) {
-    console.error('Erro ao buscar perfil:', error);
+    const { user, updatedFields } = result.getValue();
     
-    return new NextResponse(
-      JSON.stringify({
-        success: false,
-        error: 'Erro ao buscar perfil',
-        message: error instanceof Error ? error.message : 'Ocorreu um erro interno ao processar sua solicitação',
-      }),
-      {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      }
-    );
+    const responseData: UpdateProfileResponse = {
+      user: user.toResponse(),
+      updatedFields,
+    };
+
+    logger.info('User profile updated successfully', {
+      domain: 'user',
+      layer: 'api',
+      userId,
+      updatedFields,
+    });
+
+    return HttpResponse.success(responseData);
+
+  } catch (error) {
+    logger.error('Failed to update user profile', {
+      domain: 'user',
+      layer: 'api',
+      userId,
+      error,
+    });
+
+    return HttpResponse.error(error);
   }
 }
+
+// Export route handlers with observability
+export const GET = withObservability(handleGetProfile, {
+  requireAuth: true,
+  endpoint: '/api/user/profile',
+  method: 'GET',
+});
+
+export const PUT = withObservability(handleUpdateProfile, {
+  requireAuth: true,
+  endpoint: '/api/user/profile',
+  method: 'PUT',
+});
