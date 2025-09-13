@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import pdfParse from 'pdf-parse'
 import fs from 'fs'
 import path from 'path'
 import { encryptData } from '@/utils/crypto'
 import { rateLimit } from '@/utils/rate-limit'
+
+// Importação dinâmica para evitar problemas durante build
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let pdfParse: any = null
 
 interface ExamResult {
   fileName: string
@@ -75,6 +78,19 @@ const MAX_FILES = 5; // Máximo de 5 arquivos por upload
 
 export async function POST(request: NextRequest) {
   console.log('Iniciando processamento da requisição POST...')
+  
+  // Carregar pdf-parse dinamicamente
+  if (!pdfParse) {
+    try {
+      pdfParse = (await import('pdf-parse')).default;
+    } catch (error) {
+      console.error('Erro ao carregar pdf-parse:', error);
+      return new NextResponse(JSON.stringify({ success: false, error: 'PDF parser unavailable' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+  }
 
   // Aplicar rate limiting - 5 uploads por minuto
   const rateLimitResponse = rateLimit(request, 5, 60 * 1000);

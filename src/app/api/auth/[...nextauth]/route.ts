@@ -55,7 +55,7 @@ export const authOptions: NextAuthOptions = {
           }
 
           // Verificar se o usuário existe e a senha está correta
-          isPasswordValid = user && await verifyPassword(credentials.password, user.password || '');
+          isPasswordValid = user ? await verifyPassword(credentials.password, user.password || '') || false : false;
           console.log('Senha válida:', isPasswordValid);
         } catch (dbError) {
           console.error('Database error in authorize:', dbError);

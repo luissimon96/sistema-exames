@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import PricingSection from '../components/landing/PricingSection'
 
-export default function PricingPage() {
+function PricingContent() {
   const searchParams = useSearchParams()
   const subscription = searchParams.get('subscription')
   const { data: session } = useSession()
@@ -47,5 +47,13 @@ export default function PricingPage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function PricingPage() {
+  return (
+    <Suspense fallback={<div>Carregando...</div>}>
+      <PricingContent />
+    </Suspense>
   )
 }
