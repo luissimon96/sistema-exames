@@ -1,9 +1,7 @@
-import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
 import { authenticator } from 'otplib';
-
-const prisma = new PrismaClient();
+import prisma from '@/lib/prisma';
 
 /**
  * Gera um hash seguro para a senha usando bcrypt
