@@ -150,6 +150,17 @@ export const authOptions: NextAuthOptions = {
       }
       return session;
     },
+    async redirect({ url, baseUrl }) {
+      // Garantir redirecionamentos seguros em produção
+      // Se URL é relativa, usar baseUrl
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      
+      // Se URL pertence ao mesmo domínio, permitir
+      if (new URL(url).origin === baseUrl) return url;
+      
+      // Caso contrário, redirecionar para home
+      return baseUrl;
+    },
   },
   pages: {
     signIn: "/login",
