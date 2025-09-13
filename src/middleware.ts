@@ -33,7 +33,12 @@ export async function middleware(request: NextRequest) {
 
   // Verificar token CSRF para requisições de modificação (POST, PUT, DELETE, PATCH)
   // Verificação obrigatória em todos os ambientes para segurança
-  if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(method) && !pathname.startsWith('/api/auth')) {
+  // Exceções: rotas de auth, debug e seed de produção
+  const csrfExceptions = ['/api/auth', '/api/debug', '/api/admin/seed-production'];
+  const needsCsrfValidation = ['POST', 'PUT', 'DELETE', 'PATCH'].includes(method) && 
+                              !csrfExceptions.some(exception => pathname.startsWith(exception));
+  
+  if (needsCsrfValidation) {
     // Obter o token CSRF do cabeçalho ou do corpo da requisição
     const csrfToken = request.headers.get('X-CSRF-Token') ||
                       request.cookies.get('csrf_token')?.value
