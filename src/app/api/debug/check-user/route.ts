@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserByEmail, verifyPassword } from '@/lib/auth';
-import prisma from '@/lib/prisma';
 
 /**
  * Debug endpoint para verificar se usuário existe e pode fazer login

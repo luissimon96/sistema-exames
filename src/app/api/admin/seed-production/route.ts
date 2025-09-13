@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
       where: { email: 'user@example.com' },
     });
 
-    let created = [];
+    const created = [];
 
     // Criar usuário admin se não existir
     if (!adminExists) {
