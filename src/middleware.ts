@@ -10,6 +10,8 @@ const publicRoutes = [
   '/register',
   '/forgot-password',
   '/reset-password',
+  '/api/debug',
+  '/api/admin/seed-production',
 ]
 
 // Rotas que requerem papel de administrador
