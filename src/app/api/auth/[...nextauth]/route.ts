@@ -22,18 +22,45 @@ export const authOptions: NextAuthOptions = {
         code: { label: "Código 2FA", type: "text" },
       },
       async authorize(credentials, req) {
+        console.log('=== AUTHORIZE FUNCTION CALLED ===');
+        console.log('Credentials received:', { email: credentials?.email, password: credentials?.password ? '***' : 'MISSING' });
+        
         if (!credentials?.email || !credentials?.password) {
+          console.log('❌ Missing email or password');
           return null;
         }
 
-        // Encontrar o usuário pelo email
-        const user = await getUserByEmail(credentials.email);
+        console.log('Environment check:');
+        console.log('DATABASE_URL set:', !!process.env.DATABASE_URL);
+        console.log('NEXTAUTH_SECRET set:', !!process.env.NEXTAUTH_SECRET);
 
-        console.log('Tentativa de login:', credentials.email);
+        let user;
+        let isPasswordValid = false;
+        
+        try {
+          // Encontrar o usuário pelo email
+          user = await getUserByEmail(credentials.email);
 
-        // Verificar se o usuário existe e a senha está correta
-        const isPasswordValid = user && await verifyPassword(credentials.password, user.password || '');
-        console.log('Usuário encontrado:', !!user, 'Senha válida:', isPasswordValid);
+          console.log('Tentativa de login:', credentials.email);
+          console.log('Usuário encontrado no DB:', !!user);
+          
+          if (user) {
+            console.log('User details:', {
+              id: user.id,
+              name: user.name,
+              email: user.email,
+              role: user.role,
+              hasPassword: !!user.password
+            });
+          }
+
+          // Verificar se o usuário existe e a senha está correta
+          isPasswordValid = user && await verifyPassword(credentials.password, user.password || '');
+          console.log('Senha válida:', isPasswordValid);
+        } catch (dbError) {
+          console.error('Database error in authorize:', dbError);
+          return null;
+        }
 
         // Verificar autenticação de dois fatores, se estiver habilitada
         if (user?.twoFactorEnabled) {

@@ -39,7 +39,7 @@ export async function middleware(request: NextRequest) {
                       request.cookies.get('csrf_token')?.value
 
     // Se não houver token ou o token for inválido, retornar erro 403
-    if (!csrfToken || !validateCsrfToken(csrfToken)) {
+    if (!csrfToken || !(await validateCsrfToken(csrfToken))) {
       return new NextResponse(
         JSON.stringify({
           success: false,

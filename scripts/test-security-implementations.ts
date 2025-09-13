@@ -63,24 +63,24 @@ function test2FAImplementation() {
   console.log('');
 }
 
-function testCSRFProtection() {
+async function testCSRFProtection() {
   console.log('🛡️ Testing CSRF Protection...');
   
   // Generate token
-  const token = generateCsrfToken();
+  const token = await generateCsrfToken();
   console.log(`Generated CSRF token: ${token}`);
   console.log(`✓ Token is base64 encoded:`, /^[A-Za-z0-9+/=]+$/.test(token));
   
   // Test validation
-  const isValid = validateCsrfToken(token);
+  const isValid = await validateCsrfToken(token);
   console.log(`✓ Token validates correctly:`, isValid);
   
   // Test invalid token
-  const isInvalid = validateCsrfToken('invalid-token');
+  const isInvalid = await validateCsrfToken('invalid-token');
   console.log(`✓ Invalid token fails:`, !isInvalid);
   
   // Test expired token (simulate)
-  const isExpired = validateCsrfToken(token, -1); // Negative maxAge
+  const isExpired = await validateCsrfToken(token, -1); // Negative maxAge
   console.log(`✓ Expired token fails:`, !isExpired);
   
   console.log('');
@@ -122,7 +122,7 @@ async function runAllTests() {
   
   await testPasswordSecurity();
   test2FAImplementation();
-  testCSRFProtection();
+  await testCSRFProtection();
   testSecureTokenGeneration();
   await testPasswordResetTokens();
   

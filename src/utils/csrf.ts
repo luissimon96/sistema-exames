@@ -1,5 +1,3 @@
-import { randomBytes, createHmac, timingSafeEqual } from 'crypto';
-
 // Chave para tokens CSRF - DEVE vir de variáveis de ambiente
 const CSRF_SECRET = process.env.CSRF_SECRET || (() => {
   if (process.env.NODE_ENV === 'production') {
@@ -9,36 +7,78 @@ const CSRF_SECRET = process.env.CSRF_SECRET || (() => {
   return 'development-only-csrf-key-not-for-production';
 })();
 
+// Helper para converter string para Uint8Array
+function stringToUint8Array(str: string): Uint8Array {
+  return new TextEncoder().encode(str);
+}
+
+// Helper para gerar bytes aleatórios usando Web Crypto API
+async function getRandomBytes(length: number): Promise<Uint8Array> {
+  const array = new Uint8Array(length);
+  crypto.getRandomValues(array);
+  return array;
+}
+
+// Helper para criar HMAC usando Web Crypto API
+async function createHmacWeb(data: string, secret: string): Promise<string> {
+  const key = await crypto.subtle.importKey(
+    'raw',
+    stringToUint8Array(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  
+  const signature = await crypto.subtle.sign('HMAC', key, stringToUint8Array(data));
+  const hashArray = Array.from(new Uint8Array(signature));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// Helper para comparação segura de strings
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) {
+    return false;
+  }
+  
+  let result = 0;
+  for (let i = 0; i < a.length; i++) {
+    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  
+  return result === 0;
+}
+
 /**
  * Gera um token CSRF
- * @returns Token CSRF
+ * @returns Promise com Token CSRF
  */
-export function generateCsrfToken(): string {
+export async function generateCsrfToken(): Promise<string> {
   const timestamp = Date.now().toString();
-  // Usar randomBytes para segurança criptográfica
-  const randomBytes32 = randomBytes(16).toString('hex');
-  const data = `${timestamp}:${randomBytes32}`;
+  // Usar Web Crypto API para segurança criptográfica
+  const randomBytesArray = await getRandomBytes(16);
+  const randomHex = Array.from(randomBytesArray)
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+  const data = `${timestamp}:${randomHex}`;
   
   // Criar um hash HMAC do timestamp e bytes aleatórios
-  const hmac = createHmac('sha256', CSRF_SECRET)
-    .update(data)
-    .digest('hex');
+  const hmac = await createHmacWeb(data, CSRF_SECRET);
   const token = `${data}:${hmac}`;
   
   // Codificar em base64 para uso em formulários
-  return Buffer.from(token).toString('base64');
+  return btoa(token);
 }
 
 /**
  * Verifica se um token CSRF é válido
  * @param token Token CSRF a ser verificado
  * @param maxAge Idade máxima do token em milissegundos (padrão: 1 hora)
- * @returns Verdadeiro se o token for válido, falso caso contrário
+ * @returns Promise com verdadeiro se o token for válido, falso caso contrário
  */
-export function validateCsrfToken(token: string, maxAge: number = 3600000): boolean {
+export async function validateCsrfToken(token: string, maxAge: number = 3600000): Promise<boolean> {
   try {
     // Decodificar o token
-    const decodedToken = Buffer.from(token, 'base64').toString('utf8');
+    const decodedToken = atob(token);
     const [timestamp, randomString, receivedHmac] = decodedToken.split(':');
     
     if (!timestamp || !randomString || !receivedHmac) {
@@ -55,19 +95,10 @@ export function validateCsrfToken(token: string, maxAge: number = 3600000): bool
     
     // Recalcular o HMAC para verificar a integridade
     const data = `${timestamp}:${randomString}`;
-    const expectedHmac = createHmac('sha256', CSRF_SECRET)
-      .update(data)
-      .digest('hex');
+    const expectedHmac = await createHmacWeb(data, CSRF_SECRET);
     
     // Usar timingSafeEqual para evitar timing attacks
-    const expectedBuffer = Buffer.from(expectedHmac, 'hex');
-    const receivedBuffer = Buffer.from(receivedHmac, 'hex');
-    
-    if (expectedBuffer.length !== receivedBuffer.length) {
-      return false;
-    }
-    
-    return timingSafeEqual(expectedBuffer, receivedBuffer);
+    return timingSafeEqual(expectedHmac, receivedHmac);
   } catch (error) {
     // Não logar detalhes do erro por segurança
     if (process.env.NODE_ENV === 'development') {

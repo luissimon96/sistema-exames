@@ -20,34 +20,38 @@ export default function CsrfToken({ onTokenGenerated }: CsrfTokenProps) {
 
   // Efeito para gerar o token apenas uma vez na montagem
   useEffect(() => {
-    // Verificar se já existe um token no cookie
-    const existingToken = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('csrf_token='))
-      ?.split('=')[1];
+    async function initializeToken() {
+      // Verificar se já existe um token no cookie
+      const existingToken = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('csrf_token='))
+        ?.split('=')[1];
 
-    // Se já existe um token válido, usar ele
-    if (existingToken) {
-      setToken(existingToken);
+      // Se já existe um token válido, usar ele
+      if (existingToken) {
+        setToken(existingToken);
 
-      // Notificar o componente pai sobre o token existente
-      if (onTokenGeneratedRef.current) {
-        onTokenGeneratedRef.current(existingToken);
+        // Notificar o componente pai sobre o token existente
+        if (onTokenGeneratedRef.current) {
+          onTokenGeneratedRef.current(existingToken);
+        }
+        return;
       }
-      return;
+
+      // Se não existe token, gerar um novo
+      const newToken = await generateCsrfToken();
+      setToken(newToken);
+
+      // Armazenar o token em um cookie
+      document.cookie = `csrf_token=${newToken}; path=/; max-age=3600; SameSite=Strict`;
+
+      // Notificar o componente pai, se necessário
+      if (onTokenGeneratedRef.current) {
+        onTokenGeneratedRef.current(newToken);
+      }
     }
 
-    // Se não existe token, gerar um novo
-    const newToken = generateCsrfToken();
-    setToken(newToken);
-
-    // Armazenar o token em um cookie
-    document.cookie = `csrf_token=${newToken}; path=/; max-age=3600; SameSite=Strict`;
-
-    // Notificar o componente pai, se necessário
-    if (onTokenGeneratedRef.current) {
-      onTokenGeneratedRef.current(newToken);
-    }
+    initializeToken();
   }, [])
 
   return (
