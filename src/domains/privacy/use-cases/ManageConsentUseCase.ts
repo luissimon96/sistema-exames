@@ -47,7 +47,7 @@ export interface GrantConsentRequest {
   dataType: string;
   purpose: string;
   source: 'registration' | 'profile_update' | 'feature_access' | 'explicit_request';
-  legalBasis?: string;
+  legalBasis?: 'consent' | 'legitimate_interest' | 'legal_obligation' | 'vital_interests' | 'public_task' | 'contract';
   metadata?: Record<string, any>;
 }
 
@@ -176,20 +176,22 @@ export class ManageConsentUseCase implements UseCase<any, any> {
 
       return Result.success(savedConsent);
 
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorInstance = error instanceof Error ? error : new Error('Unknown error occurred');
+      
       logger.error('Failed to grant consent', {
         domain: 'privacy',
         usecase: 'grant-consent',
         userId: request.userId,
-        error,
+        error: errorInstance,
       });
 
       metrics.counter('lgpd_consent_errors_total', {
         operation: 'grant',
-        errorType: error.constructor.name,
+        errorType: errorInstance.constructor.name,
       }).inc();
 
-      return Result.failure(error);
+      return Result.failure(errorInstance);
     }
   }
 
@@ -274,7 +276,7 @@ export class ManageConsentUseCase implements UseCase<any, any> {
       metrics.counter('lgpd_consent_revoked_total', {
         dataType: consent.dataType,
         purpose: consent.purpose,
-        hasReason: !!request.reason,
+        hasReason: !!request.reason ? 'yes' : 'no',
       }).inc();
 
       logger.info('Consent revoked successfully', {
@@ -288,20 +290,22 @@ export class ManageConsentUseCase implements UseCase<any, any> {
 
       return Result.success(savedConsent);
 
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorInstance = error instanceof Error ? error : new Error('Unknown error occurred');
+      
       logger.error('Failed to revoke consent', {
         domain: 'privacy',
         usecase: 'revoke-consent',
         userId: request.userId,
-        error,
+        error: errorInstance,
       });
 
       metrics.counter('lgpd_consent_errors_total', {
         operation: 'revoke',
-        errorType: error.constructor.name,
+        errorType: errorInstance.constructor.name,
       }).inc();
 
-      return Result.failure(error);
+      return Result.failure(errorInstance);
     }
   }
 
@@ -355,15 +359,17 @@ export class ManageConsentUseCase implements UseCase<any, any> {
         summary,
       });
 
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorInstance = error instanceof Error ? error : new Error('Unknown error occurred');
+      
       logger.error('Failed to get user consents', {
         domain: 'privacy',
         usecase: 'get-user-consents',
         userId: request.userId,
-        error,
+        error: errorInstance,
       });
 
-      return Result.failure(error);
+      return Result.failure(errorInstance);
     }
   }
 
@@ -400,14 +406,16 @@ export class ManageConsentUseCase implements UseCase<any, any> {
 
       return Result.success(savedConsents);
 
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorInstance = error instanceof Error ? error : new Error('Unknown error occurred');
+      
       logger.error('Failed to initialize default consents', {
         domain: 'privacy',
         userId,
-        error,
+        error: errorInstance,
       });
 
-      return Result.failure(error);
+      return Result.failure(errorInstance);
     }
   }
 }
