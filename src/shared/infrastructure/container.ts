@@ -4,9 +4,9 @@
  */
 
 import { PrismaClient } from '@prisma/client';
-import { UserRepository } from '../domains/user/repositories/UserRepository';
-import { PrismaUserRepository } from '../domains/user/repositories/PrismaUserRepository';
-import { UpdateUserProfileUseCase } from '../domains/user/use-cases/UpdateUserProfileUseCase';
+import { UserRepository } from '../../domains/user/repositories/UserRepository';
+import { PrismaUserRepository } from '../../domains/user/repositories/PrismaUserRepository';
+import { UpdateUserProfileUseCase } from '../../domains/user/use-cases/UpdateUserProfileUseCase';
 
 // Container for managing dependencies
 class Container {
