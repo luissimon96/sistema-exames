@@ -72,15 +72,17 @@ async function handleGetProfile(request: NextRequest) {
 
     return HttpResponse.success(responseData);
 
-  } catch (error) {
+  } catch (error: unknown) {
+    const errorInstance = error instanceof Error ? error : new Error('Unknown error occurred');
+    
     logger.error('Failed to get user profile', {
       domain: 'user',
       layer: 'api',
       userId,
-      error,
+      error: errorInstance,
     });
 
-    return HttpResponse.error(error);
+    return HttpResponse.error(errorInstance);
   }
 }
 
@@ -154,15 +156,17 @@ async function handleUpdateProfile(request: NextRequest) {
 
     return HttpResponse.success(responseData);
 
-  } catch (error) {
+  } catch (error: unknown) {
+    const errorInstance = error instanceof Error ? error : new Error('Unknown error occurred');
+    
     logger.error('Failed to update user profile', {
       domain: 'user',
       layer: 'api',
       userId,
-      error,
+      error: errorInstance,
     });
 
-    return HttpResponse.error(error);
+    return HttpResponse.error(errorInstance);
   }
 }
 
